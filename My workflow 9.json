@@ -1,0 +1,353 @@
+{
+  "name": "My workflow 9",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -688,
+        16
+      ],
+      "id": "d2bf8e68-a5ab-44ce-8b0a-7d222c8de22c",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://api.openweathermap.org/data/2.5/weather?q=Migori&appid=781a0f28288ff3f6d94d186ba78870e6&units=metric",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -416,
+        32
+      ],
+      "id": "22ae2aa5-d796-41e9-a5c5-cd4601657fae",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": []
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        32
+      ],
+      "id": "c31df2a8-e3de-416f-a74f-6d9852f1e53f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "fromEmail": "chrisodyo22@gmail.com",
+        "toEmail": "onungachristopher363@gmail.com",
+        "subject": "Weather Alert for Farmers",
+        "emailFormat": "text",
+        "text": "={{$json[\"combinedMessage\"]}}\n\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        448,
+        80
+      ],
+      "id": "5948090c-fe1b-4c67-a387-850eb089d388",
+      "name": "Send email",
+      "webhookId": "33c477bb-a8fb-4067-ac68-d7df7f6a96ed",
+      "alwaysOutputData": true,
+      "notesInFlow": true,
+      "credentials": {
+        "smtp": {
+          "id": "ALlBe9Y4e7bzDiaC",
+          "name": "SMTP account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "from": "+14155238886",
+        "to": "+254791019668",
+        "toWhatsapp": true,
+        "message": "=\n{{$json[\"combinedMessage\"]}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        384,
+        320
+      ],
+      "id": "6a80b607-de34-4153-afa0-d6fefc217c77",
+      "name": "Send an SMS/MMS/WhatsApp message",
+      "credentials": {
+        "twilioApi": {
+          "id": "TXEXjR09xoSk08In",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1GFLU-IuA3Em8Q8n3Y51EKV4x6E-jFArNfrWMga025bk",
+          "mode": "list",
+          "cachedResultName": "Market_Prices",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GFLU-IuA3Em8Q8n3Y51EKV4x6E-jFArNfrWMga025bk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Market_Prices",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GFLU-IuA3Em8Q8n3Y51EKV4x6E-jFArNfrWMga025bk/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -688,
+        224
+      ],
+      "id": "b8fd0df9-f496-4980-9822-3e6c0cc7738b",
+      "name": "Get Market prices",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "u9FEEv78vn9aWbWG",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const seen = {};\nconst clean = [];\n\nfor (const item of items) {\n  const data = item.json;\n\n  const crop = data[\"Crop Name\"];\n  const location = data[\"Market Location\"];\n  const price = data[\"Price per Kg (KES)\"];\n  const dateStr = data[\"Date\"];\n\n  if (!crop || !location || !price || !dateStr) continue;\n\n  const date = new Date(dateStr);\n  const key = `${crop}_${location}`;\n\n  if (!seen[key] || date > new Date(seen[key].Date)) {\n    seen[key] = {\n      \"Crop Name\": crop,\n      \"Market Location\": location,\n      \"Price per Kg (KES)\": price,\n      \"Date\": dateStr\n    };\n  }\n}\n\nfor (const key in seen) {\n  clean.push({ json: seen[key] });\n}\n\nreturn clean;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        240
+      ],
+      "id": "b8efd12e-382d-4ac1-b5a8-c250264d1cea",
+      "name": "Formart market prices"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -112,
+        272
+      ],
+      "id": "84674ea2-f656-4986-bd35-7749a792dc1c",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Latest Prices -> build a single marketMessage string (keeps latest per crop+market)\nconst seen = {};\nfor (const item of items) {\n  const data = item.json;\n  const crop = data[\"Crop Name\"];\n  const location = data[\"Market Location\"];\n  const price = parseFloat(data[\"Price per Kg (KES)\"]);\n  const dateStr = data[\"Date\"];\n  if (!crop || !location || !price) continue;\n  const date = new Date(dateStr);\n  const key = `${crop}_${location}`;\n  if (!seen[key] || date > new Date(seen[key].date)) {\n    seen[key] = { crop, location, price, date: dateStr };\n  }\n}\n\n// Build market list\nconst values = Object.values(seen);\nconst lines = values.map(d => `${d.crop} in ${d.location}: ${d.price} KES/kg (${d.date})`);\n\n// Find best (highest price)\nlet best = values[0];\nfor (const v of values) {\n  if (v.price > best.price) best = v;\n}\n\nreturn [{\n  json: {\n    marketMessage: lines.join(\"\\n\"),\n    bestMarket: `${best.crop} in ${best.location}`,\n    bestPrice: best.price\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        240
+      ],
+      "id": "eb68534e-2ca9-44c1-84f5-b9620bf82629",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json;\n\nconst location = data.location || 'your area';\nconst condition = data.condition || 'unknown';\nconst description = data.description || '';\nconst temperature = data.temperature || '';\nconst humidity = data.humidity || '';\nconst wind = data.windSpeed || '';\nconst marketText = data.marketMessage || '';\nconst advice = data.weatherAdvice || '';\nconst bestMarket = data.bestMarket || '';\nconst bestPrice = data.bestPrice || '';\n\nconst combined =\n  '🌦 Weather alert for ' + location + \n  ': Condition: ' + condition +\n  (description ? (' (' + description + ')') : '') +\n  (temperature !== '' ? (' Temp: ' + temperature + '°C') : '') +\n  (humidity !== '' ? (' Humidity: ' + humidity + '%') : '') +\n  (wind !== '' ? (' Wind: ' + wind + ' m/s') : '') +\n  '\\n📌 Advice: ' + advice +\n  '\\n\\n📈 Market Prices:\\n' + marketText +\n  '\\n💰 Best Market: ' + bestMarket + ' at ' + bestPrice + ' KES/kg';\n\nreturn [{ json: { combinedMessage: combined } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        304
+      ],
+      "id": "6eec4179-9bdc-4caa-9fa5-5c4fcf9f2ff5",
+      "name": "Build Combined Message"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract Weather - normalise into one clean item\nreturn $input.all().map(item => {\n  const d = item.json;\n  // normalize wind: may be object or string\n  let wind = d.wind;\n  if (typeof wind === 'object' && wind !== null) {\n    wind = (typeof wind.speed !== 'undefined') ? wind.speed : (wind.wind || '');\n  }\n  // if wind is an object named differently, try d.windSpeed\n  if (!wind && d.windSpeed) wind = d.windSpeed;\n\n  return {\n    json: {\n      location: d.name || d.location || 'your area',\n      condition: (d.weather && d.weather[0] && d.weather[0].main) || d.condition || 'unknown',\n      description: (d.weather && d.weather[0] && d.weather[0].description) || d.description || '',\n      temperature: (d.main && d.main.temp) || d.temperature || '',\n      humidity: (d.main && d.main.humidity) || d.humidity || '',\n      windSpeed: wind\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        32
+      ],
+      "id": "cb7c21f7-5670-4357-85a9-3227c30a6cb7",
+      "name": "Extract Weather"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(item => {\n  const d = item.json;\n  const condition = (d.condition || '').toLowerCase();\n\n  let advice = \"Monitor your crops closely.\";\n  if (condition.includes(\"rain\")) {\n    advice = \"Expect rainfall — reduce irrigation and prepare drainage.\";\n  } else if (condition.includes(\"cloud\")) {\n    advice = \"Cloudy weather — consider light irrigation and pest monitoring.\";\n  } else if (condition.includes(\"clear\") || condition.includes(\"sun\")) {\n    advice = \"Sunny and clear — irrigate adequately and protect young crops from heat.\";\n  } else if (condition.includes(\"storm\") || condition.includes(\"thunder\")) {\n    advice = \"Storms possible — secure farm structures and delay planting.\";\n  }\n\n  return {\n    json: {\n      ...d,\n      weatherAdvice: advice\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        32
+      ],
+      "id": "993e4e32-8c64-420a-be8a-f098e9a62457",
+      "name": "Generate Advice"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Market prices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Extract Weather",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Market prices": {
+      "main": [
+        [
+          {
+            "node": "Formart market prices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formart market prices": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Build Combined Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Build Combined Message": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send an SMS/MMS/WhatsApp message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Weather": {
+      "main": [
+        [
+          {
+            "node": "Generate Advice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Advice": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3617fb7e-65fb-42c5-9338-eaa86f0eb9c2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "cd36fd54caf907aa8348ffcaafdc9b28efe28806e6f4abb50074d7f6dd3bfc00"
+  },
+  "id": "4e1eP5GhKZHXBRYw",
+  "tags": []
+}
